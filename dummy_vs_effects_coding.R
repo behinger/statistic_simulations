@@ -1,0 +1,66 @@
+cfg = list(trials = c(20,20,20,20)*5,
+           const = 5,
+           condAMain = 10,
+           condBMain = 20,
+           interAB   = 40,
+           noise = 1)
+cfgBiased = list(trials = c(20,20,20,50)*5,
+           const = 5,
+           condAMain = 10,
+           condBMain = 20,
+           interAB   = 40,
+           noise = 1)
+
+
+sim_and_plot <- function(cfg){
+cfg$nTrials = sum(cfg$trials)
+cfg$cumTrials = cumsum(cfg$trials)
+df = NULL
+y = rep(NA,cfg$nTrials)
+for (cond in c(1:4)){
+  
+  if (cond == 1){
+    x_t = c(1, 0 ,0, 0);
+    y_t = cfg$const;
+  }
+  if (cond == 2){
+    x_t = c(1, 1 ,0, 0);
+    
+    y_t = cfg$const+cfg$condAMain;
+  }
+  if (cond == 3){
+    
+    x_t = c(1, 0 ,1, 0);
+    y_t = cfg$const+cfg$condBMain;
+  }
+  if (cond == 4){
+    
+    x_t = c(1, 1, 1, 1);
+    y_t = cfg$const+cfg$condAMain + cfg$condBMain+cfg$interAB;
+  }
+  df_cond = data.frame(y=rnorm(cfg$trials[cond],y_t,cfg$noise),
+             A = factor(x_t[2]),
+             B = factor(x_t[3]))
+  df = rbind(df,df_cond);
+}
+
+dLM = round(lm(y~A*B,df)$coefficients)
+df$A = relevel(df$A,ref=2)
+df$B = relevel(df$B,ref=2)
+eLM = round(lm(y~A*B,df,contrasts=list(A='contr.sum',B='contr.sum'))$coefficients)
+
+df$A = relevel(df$A,ref=2)
+df$B = relevel(df$B,ref=2)
+p = ggplot(df,aes(x = A,y=y,shape =A,color=B))+
+  geom_jitter(width=0.2) +
+  annotate('text',x=1+c(0,1,0,1),y=c(cfg$const,cfg$const+cfg$condAMain,cfg$const+cfg$condBMain,cfg$const+cfg$condAMain+cfg$condBMain+cfg$interAB),label=c(cfg$const,cfg$const+cfg$condAMain,cfg$const+cfg$condBMain,cfg$const+cfg$condAMain+cfg$condBMain+cfg$interAB))+
+  annotate('point',x=c(1.5),y=c(eLM[1])) + # intercept effect coding
+  annotate('point',x=c(1,2),y=c(eLM%*%c(1,-1,0,0),eLM%*%c(1,1,0,0)),shape=9) + # main effect A
+  annotate('point',x=c(1.5,1.5),y=c(eLM%*%c(1,0,-1,0),eLM%*%c(1,0,1,0)),color=2) + # main Effect B
+  annotate('text',x=c(1.5),y=c(eLM[1]),label=c(eLM[1])) + geom_hline(yintercept=mean(df$y))+tBE()
+return(p)
+}
+sim_and_plot(cfg)
+ggsave('./unbiased.pdf',useDingbats=F)
+sim_and_plot(cfgBiased)
+ggsave('./biased.pdf',useDingbats=F)
