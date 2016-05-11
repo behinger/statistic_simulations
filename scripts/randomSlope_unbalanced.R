@@ -28,7 +28,7 @@ data = data.frame(subject   = rep(1:nsubjects,   each=ntrials),
 )
 
 
-factor1Beta = c(0,1)
+factor1Beta = c(0,0)
 #factor2Beta = c(-.5,.5)
 
 data$y       = with(data,
@@ -58,10 +58,14 @@ data_un = ddply(data,.(subject),function(x){
  #howmany = x$subject[1] # dependent on subject number
   howmany = max(4,howmany)
   remove = sample(seq(1,length(x$y),2),min(length(x$y),howmany))#runif(x$subject[1],min=2,max=max(2,length(x$y)))
-  remove = c(remove,remove+1)
+  howmany = (nsubjects+1)-rank(RE[1,])[x$subject[1]] # dependent on intercept rank
+  #howmany = x$subject[1] # dependent on subject number
+  #howmany = max(4,howmany)
+  #remove2 = sample(seq(2,length(x$y),2),min(length(x$y),howmany))
+  remove2 = remove+1
   
   
-  x = x[remove,]
+  x = x[c(remove,remove2),]
 })
 
 mres_un_1  = lmer(y~1+factor+(1+factor|subject),data=data_un)
@@ -71,3 +75,6 @@ mres_un_4  = lmer(y~1+factor+(1|subject),data=data_un)
 
 rbind(fixef(mres_1),fixef(mres_2),fixef(mres_3),fixef(mres_4),fixef(mres_un_1),fixef(mres_un_2),fixef(mres_un_3),fixef(mres_un_4))
 ggplot(data_un,aes(x=interaction(subject,factor),y=y,color=factor(subject),group=subject))+geom_point(position=position_jitter())
+
+mean(data$y)
+mean(data_un$y)
