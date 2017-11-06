@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simulations</title>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="teatime_simulationMixedModel_files\rmdshower/node_modules/shower-ribbon/styles/screen-4x3.css">
+  <link rel="stylesheet" href="teatime_simulationMixedModel_files/rmdshower/package/styles/screen-4x3.css">
+  <link rel="stylesheet" href="teatime_simulationMixedModel_files\rmdshower/style-common.css">
+  <link rel="stylesheet" href="teatime_simulationMixedModel_files\rmdshower/style-ribbon.css">
+  <link rel="stylesheet" href="teatime_simulationMixedModel_files/rmdshower/style-override.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.js"></script>
+  <script src="teatime_simulationMixedModel_files\rmdshower/auto-render.min.js" type="text/javascript"></script>
+  
+  
+    <style type="text/css">
+   div.sourceCode { overflow-x: auto; }
+   table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+     margin: 0; padding: 0; vertical-align: baseline; border: none; }
+   table.sourceCode { width: 100%; line-height: 100%; }
+   td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+   td.sourceCode { padding-left: 5px; }
+   code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+   code > span.dt { color: #902000; } /* DataType */
+   code > span.dv { color: #40a070; } /* DecVal */
+   code > span.bn { color: #40a070; } /* BaseN */
+   code > span.fl { color: #40a070; } /* Float */
+   code > span.ch { color: #4070a0; } /* Char */
+   code > span.st { color: #4070a0; } /* String */
+   code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+   code > span.ot { color: #007020; } /* Other */
+   code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+   code > span.fu { color: #06287e; } /* Function */
+   code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+   code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+   code > span.cn { color: #880000; } /* Constant */
+   code > span.sc { color: #4070a0; } /* SpecialChar */
+   code > span.vs { color: #4070a0; } /* VerbatimString */
+   code > span.ss { color: #bb6688; } /* SpecialString */
+   code > span.im { } /* Import */
+   code > span.va { color: #19177c; } /* Variable */
+   code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+   code > span.op { color: #666666; } /* Operator */
+   code > span.bu { } /* BuiltIn */
+   code > span.ex { } /* Extension */
+   code > span.pp { color: #bc7a00; } /* Preprocessor */
+   code > span.at { color: #7d9029; } /* Attribute */
+   code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+   code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+   code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+   code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  
+            <link rel="stylesheet" href="custom.css"/>
+      
+  
+</head>
+
+<body class="shower list">
+
+  <header class="caption">
+    <h1>Simulations</h1>
+    <p>Benedikt Ehinger</p>
+  </header>
+
+    
+  
+<section id="data-simulation" class="titleslide slide level1"><h2 class="shout">Data simulation</h2></section><section id="disclaimer" class="slide level2">
+<h2>Disclaimer</h2>
+<p>Lots of this presentation was taken from: Dave Kleinschmidt, Rutgers New Brunswick</p>
+<p><a href="http://www.davekleinschmidt.com/sst-mixed-effects-simulation/simulations_slides.pdf">Link to his simulation slides</a></p>
+</section><section id="why-should-we-simulate" class="slide level2">
+<h2>Why should we simulate?</h2>
+<ul>
+<li>check your analysis pipeline</li>
+<li>do (pre-experiment!) power estimates</li>
+<li>understand statistical methods</li>
+</ul>
+</section><section id="what-are-we-going-to-do-today" class="slide level2">
+<h2>What are we going to do today?</h2>
+<ul>
+<li>simulate a simple linear model (~1x2 ANOVA aka t-test)</li>
+<li>add repeated measures</li>
+<li>do a power analysis</li>
+<li>Bonus: advanced features</li>
+<li>Bonus: Examples</li>
+</ul>
+</section><section id="a-simple-example-to-warm-up" class="slide level2">
+<h2>A simple example to warm up</h2>
+<p><span class="math display">\[ y_i = b_0 + b_1*location_i + e_i\]</span> <span class="math display">\[e_i \sim normal(0,\sigma) \]</span></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n.obs =<span class="st"> </span><span class="dv">50</span>   <span class="co"># number of subjects</span>
+b0 =<span class="st"> </span><span class="dv">500</span>     <span class="co"># how much the effect, if location=0</span>
+b1 =<span class="st"> </span><span class="dv">50</span>      <span class="co"># how much additional effect if location=1</span>
+sigma =<span class="st"> </span><span class="dv">30</span>   <span class="co"># how much noise </span>
+beta =<span class="st"> </span><span class="kw">c</span>(b0,b1)
+data.str &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">location=</span><span class="kw">factor</span>(<span class="kw">c</span>(<span class="kw">rep</span>(<span class="st">&#39;low&#39;</span>, n.obs<span class="op">/</span><span class="dv">2</span>), <span class="kw">rep</span>(<span class="st">&#39;high&#39;</span>, n.obs<span class="op">/</span><span class="dv">2</span>))))
+model.mat &lt;-<span class="st"> </span><span class="kw">model.matrix</span>(<span class="op">~</span><span class="st"> </span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>location, data.str)
+sim.rt =<span class="st"> </span><span class="kw">rnorm</span>(<span class="dt">n=</span>n.obs, <span class="dt">mean =</span> model.mat<span class="op">%*%</span>beta, <span class="dt">sd =</span> sigma)
+data =<span class="st"> </span><span class="kw">data.frame</span>(data.str,<span class="dt">rt=</span>sim.rt)</code></pre></div>
+</section><section class="slide level2">
+
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(data,<span class="kw">aes</span>(<span class="dt">x=</span>location,<span class="dt">y=</span>rt,<span class="dt">color=</span>location))<span class="op">+</span><span class="kw">geom_beeswarm</span>()</code></pre></div>
+<p><img src="teatime_simulationMixedModel_files/figure-revealjs/unnamed-chunk-3-1.png" width="768" /></p>
+</section><section class="slide level2">
+
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(<span class="kw">lm</span>(<span class="dt">data=</span>data,<span class="dt">formula =</span> rt <span class="op">~</span><span class="st"> </span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>location))</code></pre></div>
+<pre><code>## 
+## Call:
+## lm(formula = rt ~ 1 + location, data = data)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -72.237 -20.713   2.826  25.687  61.475 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  491.819      6.856  71.736  &lt; 2e-16 ***
+## locationlow   61.491      9.696   6.342 7.51e-08 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 34.28 on 48 degrees of freedom
+## Multiple R-squared:  0.4559, Adjusted R-squared:  0.4446 
+## F-statistic: 40.22 on 1 and 48 DF,  p-value: 7.513e-08</code></pre>
+</section><section id="multiple-trials" class="slide level2">
+<h2>Multiple trials</h2>
+<span class="math display">\[ y_i = (b_0 + \gamma_{0,j}) + (b_1 + \gamma_{1,j})*location_i + e_i\]</span> <span class="math display">\[ \gamma_j \sim normal([0, 0],[\sigma_1, \sigma_2])\]</span> <span class="math display">\[ e_i \sim normal(0,\sigma_3)\]</span>
+<center>
+(whiteboard-time!)
+</center>
+</section><section class="slide level2">
+
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">beta=<span class="kw">c</span>(<span class="dv">500</span>,<span class="dv">50</span>);sigma=<span class="dv">200</span>
+gamma =<span class="st"> </span><span class="kw">diag</span>(<span class="kw">c</span>(<span class="dv">100</span><span class="op">^</span><span class="dv">2</span>,<span class="dv">50</span><span class="op">^</span><span class="dv">2</span>)) <span class="co"># variation over subjects</span>
+n.subj=<span class="dv">24</span>;n.obs=<span class="dv">50</span>
+
+<span class="co"># create design matrix for our made up experiment</span>
+data.str &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">location=</span><span class="kw">factor</span>(<span class="kw">c</span>(<span class="kw">rep</span>(<span class="st">&#39;low&#39;</span>, n.obs<span class="op">/</span><span class="dv">2</span>), <span class="kw">rep</span>(<span class="st">&#39;high&#39;</span>, n.obs<span class="op">/</span><span class="dv">2</span>))))
+model.mat &lt;-<span class="st"> </span><span class="kw">model.matrix</span>(<span class="op">~</span><span class="st"> </span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>location, data.str)
+
+<span class="co"># repeat for every subject (rdply):</span>
+generate.data &lt;-<span class="st"> </span><span class="cf">function</span>() {
+  simulated.data &lt;-<span class="st"> </span>plyr<span class="op">::</span><span class="kw">rdply</span>(n.subj, {
+    beta &lt;-<span class="st"> </span><span class="kw">t</span>(<span class="kw">rmvnorm</span>(<span class="dt">n=</span><span class="dv">1</span>,<span class="dt">mean =</span> beta, <span class="dt">sigma=</span>gamma))
+    expected.rt &lt;-<span class="st"> </span>model.mat <span class="op">%*%</span><span class="st"> </span>beta
+    sim.rt &lt;-<span class="st"> </span><span class="kw">rnorm</span>(<span class="dt">n=</span><span class="kw">length</span>(expected.rt), <span class="dt">mean=</span>expected.rt, <span class="dt">sd=</span>sigma)
+    <span class="kw">data.frame</span>(data.str, <span class="dt">rt=</span>sim.rt)
+  })
+  <span class="kw">names</span>(simulated.data)[<span class="dv">1</span>] &lt;-<span class="st"> &#39;subject&#39;</span>
+  <span class="kw">return</span>(simulated.data)
+}</code></pre></div>
+</section><section class="slide level2">
+
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(<span class="kw">generate.data</span>(),<span class="kw">aes</span>(<span class="dt">x=</span>location,<span class="dt">y=</span>rt,<span class="dt">color=</span>location))<span class="op">+</span><span class="kw">geom_beeswarm</span>()</code></pre></div>
+<p><img src="teatime_simulationMixedModel_files/figure-revealjs/unnamed-chunk-6-1.png" width="768" /></p>
+</section><section class="slide level2">
+
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(<span class="kw">lm</span>(<span class="dt">data=</span><span class="kw">generate.data</span>(),<span class="dt">formula =</span> rt <span class="op">~</span><span class="st"> </span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>location))</code></pre></div>
+<pre><code>## 
+## Call:
+## lm(formula = rt ~ 1 + location, data = generate.data())
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -624.99 -152.48    4.87  146.76  701.21 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  506.164      9.105  55.594  &lt; 2e-16 ***
+## locationlow   54.454     12.876   4.229 2.52e-05 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 223 on 1198 degrees of freedom
+## Multiple R-squared:  0.01471,    Adjusted R-squared:  0.01389 
+## F-statistic: 17.89 on 1 and 1198 DF,  p-value: 2.525e-05</code></pre>
+</section><section class="slide level2">
+
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(<span class="dt">data =</span> <span class="kw">generate.data</span>(),<span class="kw">aes</span>(<span class="dt">x=</span>subject,<span class="dt">y=</span>rt,<span class="dt">color=</span>location))<span class="op">+</span><span class="kw">geom_beeswarm</span>(<span class="dt">dodge.width =</span> <span class="fl">0.5</span>)</code></pre></div>
+<p><img src="teatime_simulationMixedModel_files/figure-revealjs/unnamed-chunk-8-1.png" width="768" /></p>
+</section><section class="slide level2">
+
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(<span class="kw">lmer</span>(<span class="dt">data=</span><span class="kw">generate.data</span>(),<span class="dt">formula =</span> rt <span class="op">~</span><span class="st"> </span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>location <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span><span class="op">|</span>subject)))</code></pre></div>
+<pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
+## Formula: rt ~ 1 + location + (1 | subject)
+##    Data: generate.data()
+## 
+## REML criterion at convergence: 16186.8
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -3.2664 -0.6499 -0.0166  0.6924  3.3752 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev.
+##  subject  (Intercept) 11795    108.6   
+##  Residual             40549    201.4   
+## Number of obs: 1200, groups:  subject, 24
+## 
+## Fixed effects:
+##             Estimate Std. Error t value
+## (Intercept)   465.07      23.64   19.67
+## locationlow    57.78      11.63    4.97
+## 
+## Correlation of Fixed Effects:
+##             (Intr)
+## locationlow -0.246</code></pre>
+</section><section id="power-analyses" class="slide level2">
+<h2>Power analyses!</h2>
+<ul>
+<li>run the function 1000 time &amp; look at results</li>
+<li>to make it more realistic we add a little bit to the pipeline</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">runAnalysis =<span class="st"> </span><span class="cf">function</span>(simulated.data){
+  <span class="co"># Outlier correction (winsorizing)</span>
+  simulated.data &lt;-<span class="st"> </span>simulated.data <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(subject)<span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">mutate</span>(<span class="dt">cut_point_top   =</span> <span class="kw">quantile</span>(rt, <span class="fl">0.9</span>),
+          <span class="dt">cut_point_bottom =</span> <span class="kw">quantile</span>(rt, <span class="fl">0.1</span>))
+
+  simulated.data<span class="op">$</span>rt &lt;-<span class="st"> </span><span class="kw">with</span>(simulated.data,
+                              <span class="kw">ifelse</span>(rt<span class="op">&gt;</span>cut_point_top, cut_point_top, 
+                              <span class="kw">ifelse</span>(rt<span class="op">&lt;</span>cut_point_bottom, cut_point_bottom, rt)))
+
+  results =<span class="st"> </span><span class="kw">lmer</span>(<span class="dt">data=</span>simulated.data,<span class="dt">formula =</span> rt <span class="op">~</span><span class="st"> </span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>location <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span><span class="op">|</span>subject))
+  <span class="kw">return</span>(broom<span class="op">::</span><span class="kw">tidy</span>(results,<span class="st">&#39;fixed&#39;</span>))
+}</code></pre></div>
+</section><section class="slide level2">
+
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">simulations &lt;-<span class="st"> </span>plyr<span class="op">::</span><span class="kw">rdply</span>(<span class="dt">.n=</span><span class="dv">1000</span>,
+                <span class="kw">runAnalysis</span>(<span class="kw">generate.data</span>()))
+<span class="kw">head</span>(simulations)</code></pre></div>
+<pre><code>##   .n        term  estimate std.error statistic
+## 1  1 (Intercept) 534.55299 20.425551 26.170799
+## 2  1 locationlow  47.96931  9.452245  5.074912
+## 3  2 (Intercept) 484.78246 24.201612 20.030998
+## 4  2 locationlow  35.75774  9.641037  3.708910
+## 5  3 (Intercept) 527.44558 25.812733 20.433543
+## 6  3 locationlow  29.79872  9.645675  3.089335</code></pre>
+</section><section class="slide level2">
+
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(simulations,<span class="kw">aes</span>(<span class="dt">x=</span>statistic))<span class="op">+</span><span class="kw">geom_histogram</span>(<span class="kw">aes</span>(<span class="dt">y =</span> ..density..))<span class="op">+</span><span class="kw">geom_density</span>(<span class="dt">size=</span><span class="dv">2</span>)<span class="op">+</span><span class="kw">facet_grid</span>(. <span class="op">~</span>term,<span class="dt">scales =</span> <span class="st">&quot;free_x&quot;</span>)</code></pre></div>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="teatime_simulationMixedModel_files/figure-revealjs/unnamed-chunk-14-1.png" width="768" /></p>
+</section><section class="slide level2">
+
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">simulations <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(term)<span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarise</span>(<span class="dt">sigRate=</span><span class="kw">mean</span>(<span class="kw">abs</span>(statistic)<span class="op">&gt;</span><span class="fl">1.96</span>))</code></pre></div>
+<pre><code>## Source: local data frame [2 x 2]
+## 
+##          term sigRate
+##         (chr)   (dbl)
+## 1 (Intercept)    1.00
+## 2 locationlow    0.97</code></pre>
+</section>
+<section id="bonus-material" class="titleslide slide level1"><h2 class="shout">Bonus material</h2></section><section id="spicing-things-up" class="slide level2">
+<h2>Spicing things up:</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># make RT lognormal</span>
+sim.RT &lt;-<span class="st"> </span><span class="kw">rlnorm</span>(<span class="dt">n=</span><span class="kw">length</span>(expected.RT), <span class="dt">meanlog =</span><span class="kw">log</span>(expected.RT), <span class="dt">sdlog=</span><span class="kw">log</span>(resid.sd))
+sim.RT &lt;-<span class="st"> </span><span class="kw">rnorm</span> (<span class="dt">n=</span><span class="kw">length</span>(expected.RT), <span class="dt">mean=</span>expected.RT, <span class="dt">sd=</span>resid.sd)
+
+<span class="co"># add sequential effects</span>
+simulated.data<span class="op">%&gt;%</span><span class="kw">group_by</span>(subject)<span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">rt =</span> <span class="kw">c</span>(rt[<span class="dv">1</span>],rt[<span class="dv">2</span><span class="op">:</span><span class="kw">length</span>(rt)] <span class="op">+</span><span class="st"> </span><span class="fl">0.1</span><span class="op">*</span>rt[<span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(rt)<span class="op">-</span><span class="dv">1</span>]))</code></pre></div>
+</section><section class="slide level2">
+
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">simulated.data         =<span class="st"> </span><span class="kw">make.data.generator</span>(<span class="dt">true.effects=</span><span class="kw">c</span>(<span class="dv">500</span>,<span class="dv">0</span>),<span class="dt">resid.sd=</span><span class="dv">200</span> ,<span class="dt">lognormal=</span>F,<span class="dt">ranef.cov =</span> <span class="kw">diag</span>(<span class="kw">c</span>(<span class="dv">100</span>,<span class="dv">0</span>)))
+simulated.data_lognorm =<span class="st"> </span><span class="kw">make.data.generator</span>(<span class="dt">true.effects=</span><span class="kw">c</span>(<span class="dv">500</span>,<span class="dv">0</span>),<span class="dt">resid.sd=</span><span class="fl">1.45</span>,<span class="dt">lognormal=</span>T,<span class="dt">ranef.cov =</span> <span class="kw">diag</span>(<span class="kw">c</span>(<span class="dv">100</span>,<span class="dv">0</span>)))
+
+simulated.data_seq =<span class="st"> </span><span class="cf">function</span>(simulated.data){
+  <span class="kw">simulated.data</span>()<span class="op">%&gt;%</span><span class="kw">group_by</span>(subject)<span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">rt =</span> <span class="kw">c</span>(rt[<span class="dv">1</span>],rt[<span class="dv">2</span><span class="op">:</span><span class="kw">length</span>(rt)] <span class="op">+</span><span class="st"> </span><span class="fl">0.1</span><span class="op">*</span>rt[<span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(rt)<span class="op">-</span><span class="dv">1</span>]))
+}
+
+<span class="kw">ggplot</span>(<span class="kw">bind_rows</span>(<span class="kw">simulated.data</span>(),<span class="kw">simulated.data_seq</span>(simulated.data),<span class="kw">simulated.data_lognorm</span>(),<span class="dt">.id=</span><span class="st">&quot;condition&quot;</span>),<span class="kw">aes</span>(<span class="dt">x=</span>location,<span class="dt">y=</span>rt)) <span class="op">+</span><span class="kw">geom_beeswarm</span>(<span class="kw">aes</span>(<span class="dt">color=</span>location))<span class="op">+</span><span class="st"> </span><span class="kw">stat_summary</span>(<span class="dt">size=</span><span class="dv">1</span>)<span class="op">+</span><span class="kw">facet_grid</span>(.<span class="op">~</span>condition)</code></pre></div>
+<p><img src="teatime_simulationMixedModel_files/figure-revealjs/unnamed-chunk-17-1.png" width="768" /></p>
+</section><section class="slide level2">
+
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n_sim =<span class="st"> </span><span class="dv">2000</span>
+simulations =<span class="st"> </span><span class="kw">bind_rows</span>(plyr<span class="op">::</span><span class="kw">rdply</span>(<span class="dt">.n=</span>n_sim,
+                <span class="kw">runAnalysis</span>(<span class="kw">simulated.data</span>())),
+          plyr<span class="op">::</span><span class="kw">rdply</span>(<span class="dt">.n=</span>n_sim,
+                <span class="kw">runAnalysis</span>(<span class="kw">simulated.data_seq</span>(simulated.data))),      
+          plyr<span class="op">::</span><span class="kw">rdply</span>(<span class="dt">.n=</span>n_sim,
+                <span class="kw">runAnalysis</span>(<span class="kw">simulated.data_lognorm</span>())),<span class="dt">.id=</span><span class="st">&quot;condition&quot;</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(simulations,<span class="kw">aes</span>(<span class="dt">x=</span>statistic,<span class="dt">color=</span>condition))<span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_density</span>(<span class="dt">size=</span><span class="dv">2</span>)<span class="op">+</span><span class="kw">facet_grid</span>(. <span class="op">~</span>term,<span class="dt">scales =</span> <span class="st">&quot;free_x&quot;</span>)</code></pre></div>
+<p><img src="teatime_simulationMixedModel_files/figure-revealjs/unnamed-chunk-19-1.png" width="768" /></p>
+</section><section class="slide level2">
+
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">simulations <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(term,condition)<span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarise</span>(<span class="dt">sigRate=</span><span class="kw">mean</span>(<span class="kw">abs</span>(statistic)<span class="op">&gt;</span><span class="fl">1.96</span>))</code></pre></div>
+<pre><code>## Source: local data frame [6 x 3]
+## Groups: term [?]
+## 
+##          term condition sigRate
+##         (chr)     (chr)   (dbl)
+## 1 (Intercept)         1  1.0000
+## 2 (Intercept)         2  1.0000
+## 3 (Intercept)         3  1.0000
+## 4 locationlow         1  0.0510
+## 5 locationlow         2  0.0740
+## 6 locationlow         3  0.0545</code></pre>
+</section>
+<section id="other-examples" class="titleslide slide level1"><h2 class="shout">Other examples</h2></section><section id="timeseries" class="slide level2">
+<h2>Timeseries</h2>
+<div class="double">
+<p class="double-flow">
+<p><img src="simulation_example.png" alt="simulation example" width="400" /></p>
+</p>
+<p class="double-flow">
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">[...]
+<span class="co"># generate sigmoids as change points</span>
+custom_interp =<span class="st"> </span><span class="cf">function</span>(w,wc,w2,a)
+    <span class="kw">return</span>((w2 <span class="op">+</span><span class="st"> </span>wc) <span class="op">*</span><span class="st"> </span>a[<span class="dv">1</span>] <span class="op">+</span><span class="st">  </span>(w <span class="op">-</span><span class="st"> </span>w2) <span class="op">*</span><span class="st"> </span>a[<span class="dv">2</span>]);
+w =<span class="st"> </span>arm<span class="op">::</span><span class="kw">invlogit</span>(<span class="dv">2</span><span class="op">*</span>(<span class="kw">seq</span>(ntime) <span class="op">-</span><span class="st"> </span><span class="dv">12</span>))
+w2 =<span class="st"> </span>arm<span class="op">::</span><span class="kw">invlogit</span>(<span class="dv">2</span><span class="op">*</span>(<span class="kw">seq</span>(ntime) <span class="op">-</span><span class="st"> </span><span class="dv">30</span>))
+wc =<span class="st"> </span><span class="dv">1</span><span class="op">-</span>w
+
+<span class="co"># the mean curve is a combination of the sigmoids and the means</span>
+mu =<span class="st"> </span><span class="kw">custom_interp</span>(w,wc,w2,<span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">5</span>))
+sigma =<span class="st"> </span><span class="kw">custom_interp</span>(w,wc,w2,<span class="kw">c</span>(<span class="dv">1</span>,<span class="fl">1.5</span>))
+<span class="cf">for</span> (t <span class="cf">in</span> <span class="kw">seq</span>(<span class="kw">length</span>(timevec))){
+  <span class="cf">for</span> (t <span class="cf">in</span> <span class="kw">seq</span>(<span class="kw">length</span>(timevec))){      
+    <span class="co"># autocorrelation of total signal + correlation of noise    </span>
+    predssvep =<span class="st"> </span>mu[t] <span class="op">+</span><span class="st"> </span>autocorr <span class="op">*</span><span class="st"> </span>predssvep_n1 <span class="op">+</span><span class="st"> </span>theta<span class="op">*</span>err
+    ssvepnoise =<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">1</span>,<span class="dv">0</span>,sigma[t])
+    
+    predssvep =<span class="st"> </span>predssvep <span class="op">+</span><span class="st"> </span>ssvepnoise;
+    predssvep_n1 =<span class="st"> </span>predssvep
+    err =<span class="st"> </span>ssvepnoise
+}</code></pre></div>
+<p>
+</section><section id="eeg-signal" class="slide level2">
+<h2>EEG Signal</h2>
+<div class="double">
+<p class="double-flow">
+<p><img src="eeg_simulation.PNG" alt="eeg example" width="400" /></p>
+</p>
+<p class="double-flow">
+<div class="sourceCode"><pre class="sourceCode matlab"><code class="sourceCode matlab">T_event= <span class="fl">500</span>; <span class="co">% total length of event-signal in samples</span>
+N_event = <span class="fl">500</span>; <span class="co">% max number of events</span>
+EEG = eeg_emptyset();
+EEG.pnts  = <span class="fl">5000</span>; <span class="co">% total length in samples</span>
+EEG.srate = <span class="fl">1000</span>; <span class="co">%Hz</span>
+
+<span class="co">% first signal is 1/4 flat, then pink noise then 1/4 flat</span>
+sig1 = pinknoise(T_event)&#39;;
+sig1(<span class="fl">1</span>:T_event/<span class="fl">5</span>) = <span class="fl">0</span>;
+sig1(<span class="fl">4</span>*T_event/<span class="fl">5</span>:end) = <span class="fl">0</span>;
+
+event_lat = ceil(cumsum(<span class="fl">250</span>+<span class="fl">50</span>*randn(N_event,<span class="fl">1</span>)));
+event_lat(event_lat&gt;EEG.pnts-T_event) = [];
+
+for e = <span class="fl">1</span>:length(event_lat)
+    EEG.event(e).latency = event_lat(e);
+    EEG.event(e).type = <span class="st">&#39;eventA&#39;</span>;
+end
+
+<span class="co">% generate signal</span>
+tmp = zeros(<span class="fl">1</span>,EEG.pnts);
+tmp(event_lat) = <span class="fl">1</span>;
+sig1_tmp = conv(tmp,sig1,<span class="st">&#39;full&#39;</span>);
+
+EEG.data(<span class="fl">1</span>,:) = sig1_tmp(<span class="fl">1</span>:EEG.pnts);
+EEG.data = EEG.data + <span class="fl">0.5</span>*rand(size(EEG.data));</code></pre></div>
+</p>
+</div>
+</section><section class="slide level2">
+
+<div class="double">
+<p class="double-flow">
+<h2 id="eeg-coherence">EEG coherence</h2>
+<ul>
+<li>have a forward model (source voxel =&gt; electrode space)</li>
+<li>have some sinoidal signal</li>
+<li>use two voxels and project phase-shifted sinoidal signal to electrodes</li>
+<li>sprinkle some noise on top of it</li>
+</ul>
+</p>
+<p class="double-flow">
+<div class="sourceCode"><pre class="sourceCode matlab"><code class="sourceCode matlab">function [raw] =p2_be_simulateData5(subjID,varargin)
+<span class="co">% [...]</span>
+
+    for k = <span class="fl">1</span>:length(randSources)
+        tIdx = randi(g.srate*<span class="fl">0.25</span>+length(g.time)-<span class="fl">4</span>*g.srate*<span class="fl">0.25</span>);
+        tIdx = tIdx:tIdx + round((rand(<span class="fl">1</span>)/<span class="fl">2</span> + <span class="fl">0.25</span>) *g.srate);
+        phase = rand(<span class="fl">1</span>,g.ntrials).*<span class="fl">2</span>.*pi;
+        freq = randi([<span class="fl">1</span> <span class="fl">80</span>]);
+        for nT = <span class="fl">1</span>:g.ntrials
+            wind = hamming(length(tIdx));
+            simSig = sin(freq*g.time(tIdx)*<span class="fl">2</span>*pi + phase(nT));
+            sig(end,tIdx)= wind .* simSig&#39;;
+        end
+    end
+<span class="co">% [...]</span>
+raw = ft_dipolesimulation(cfg);</code></pre></div>
+</p>
+</div>
+</section>
+
+  <!--
+  To hide progress bar from entire presentation
+  just remove “progress” element.
+  -->
+  <!-- <div class="progress"></div> -->
+  <script src="teatime_simulationMixedModel_files\rmdshower/node_modules/shower/node_modules/shower-core/shower.min.js"></script>
+  <!-- Copyright © 2015 Yours Truly, Famous Inc. -->
+  <!-- Photos by John Carey, fiftyfootshadows.net -->
+
+    <script>renderMathInElement(document.body);</script>
+  
+  
+</body>
+</html>
